@@ -28,7 +28,7 @@ With a clean, user-friendly web interface, the project is suitable for beginners
 
 ## 🖼️ Screenshots
 
-> ![Web Interface](Images\web-ui.png)
+> ![Web Interface](Images/web-ui.png)
 
 ## 🔧 System Requirements
 
@@ -139,25 +139,25 @@ python video_subscriber.py
 1. Install **[Arduino IDE](https://support.arduino.cc/hc/en-us/articles/360019833020-Download-and-install-Arduino-IDE)**
 2. Add ESP32 board support in Arduino IDE:
    - Go to `File > Preferences`
-   > ![Web Interface](Images\arduino-ide-open-preferences.png)
+   > ![Web Interface](Images/arduino-ide-open-preferences.png)
 
    - Add `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json` to Additional Board Manager URLs
-   > ![Web Interface](Images\ESP32-URL-Arduino-IDE.png)
+   > ![Web Interface](Images/ESP32-URL-Arduino-IDE.png)
 
    - Go to `Tools > Board > Boards Manager` and install ESP32
-   > ![Web Interface](Images\boardsManager.png)
-   > ![Web Interface](Images\installing-esp32.png)
+   > ![Web Interface](Images/boardsManager.png)
+   > ![Web Interface](Images/installing-esp32.png)
 
    - Go to `Tools > Board > ESP32 Ardiono` and select **ESP32 Wrover Module** (or your esp32 model)
-   > ![Web Interface](Images\esp32-board-select.png)
+   > ![Web Interface](Images/esp32-board-select.png)
 
 3. Install required libraries:
    - Go to `Sketch > Include Library > Manage Libraries`
-   > ![Web Interface](Images\manage-library.png)
+   > ![Web Interface](Images/manage-library.png)
 
    - Install `PubSubClient` and `ESP32Servo`
-   > ![Web Interface](Images\pubsubclient.png)
-   > ![Web Interface](Images\esp32servo.png)
+   > ![Web Interface](Images/pubsubclient.png)
+   > ![Web Interface](Images/esp32servo.png)
    
 4. Open `/esp32_code/gesture_command_receiver_servo.ino`
 5. Update WiFi credentials and MQTT broker address
@@ -204,8 +204,8 @@ const char* topic = "webcam/hand_status";
    - Open hand → Servo rotates to 90 degrees, LED off
    - Closed hand (fist) → Servo rotates to 0 degrees, LED on
 
-> ![Web Interface](Images\web-ui-open.png)
-> ![Web Interface](Images\web-ui-closed.png)
+> ![Web Interface](Images/web-ui-open.png)
+> ![Web Interface](Images/web-ui-closed.png)
 
 
 ## 📊 How It Works
@@ -232,7 +232,7 @@ The base system detects open and closed hands, but you can extend it with custom
 ### MQTT Connection Issues
 - Verify **broker address** and **port**
    - For the web app, go to `/web_interface/publisher.js` and adjust default IP
-   > ![MQTT Broker](Images\broker-ip.png)
+   > ![MQTT Broker](Images/broker-ip.png)
    - Using the web app, you can simply add your broker IP in the **web interface**
    
 - Check network connectivity
