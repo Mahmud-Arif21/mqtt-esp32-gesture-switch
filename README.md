@@ -207,6 +207,9 @@ const char* topic = "webcam/hand_status";
 > ![Web Interface](Images/web-ui-open.png)
 > ![Web Interface](Images/web-ui-closed.png)
 
+6. This web app also publishes the video stream at the topic `webcam/stream` and the user can turn this on / off, set the frame rate and control how the video stream is sent:
+   - **✅ Base64 Enabled:** The video frame (JPEG image) is encoded as a Base64 string, and then sent as text over MQTT
+   - **⬜ Base64 Disabled:** The video frame is sent as raw binary data (bytes) over MQTT, without encoding
 
 ## 📊 How It Works
 
