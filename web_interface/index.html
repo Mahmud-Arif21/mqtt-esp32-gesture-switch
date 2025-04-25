@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hand Gesture Vision System</title>
+
+  <!-- MediaPipe Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
+  <!-- Paho MQTT JS (WebSockets) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js"></script>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="main-container">
+    <!-- Header with logo and title -->
+    <header class="app-header">
+      <div class="logo-container">
+        <div class="logo">GV</div>
+        <h1>MQTT Esp32 Gesture Switch <span class="subtitle">Publisher</span></h1>
+      </div>
+      <div class="connection-status">
+        <div class="status-indicator" id="connection-indicator">
+          <span></span>
+          <p id="connection-text">Disconnected</p>
+        </div>
+        <button id="connect-btn" class="primary-btn">Connect</button>
+        <button id="disconnect-btn" class="secondary-btn">Disconnect</button>
+      </div>
+    </header>
+
+    <!-- Main content area -->
+    <div class="content-container">
+      <!-- Left sidebar with settings -->
+      <aside class="sidebar">
+        <div class="sidebar-section">
+          <h2>Connection</h2>
+          <div class="input-group">
+            <label for="host">Broker Address</label>
+            <div class="dropdown-with-add">
+              <select id="host"></select>
+              <button class="add-btn" data-key="hosts" title="Add New">+</button>
+            </div>
+          </div>
+          <div class="input-row">
+            <div class="input-group half">
+              <label for="port">MQTT Port</label>
+              <div class="dropdown-with-add">
+                <select id="port"></select>
+                <button class="add-btn" data-key="ports" title="Add New">+</button>
+              </div>
+            </div>
+            <div class="input-group half">
+              <label for="port_ws">WS Port</label>
+              <div class="dropdown-with-add">
+                <select id="port_ws"></select>
+                <button class="add-btn" data-key="ports_ws" title="Add New">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h2>MQTT Topics</h2>
+          <div class="input-group">
+            <label for="topic_p">Hand Status Topic</label>
+            <div class="dropdown-with-add">
+              <select id="topic_p"></select>
+              <button class="add-btn" data-key="topics_p" title="Add New">+</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="topic_v">Video Stream Topic</label>
+            <div class="dropdown-with-add">
+              <select id="topic_v"></select>
+              <button class="add-btn" data-key="topics_v" title="Add New">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h2>Stream Settings</h2>
+          <div class="settings-toggles">
+            <div class="toggle-switch">
+              <input type="checkbox" id="enable_video" checked>
+              <label for="enable_video">
+                <span class="toggle-track"></span>
+                <span class="toggle-label">Video Stream</span>
+              </label>
+            </div>
+            <div class="toggle-switch">
+              <input type="checkbox" id="enable_hand" checked>
+              <label for="enable_hand">
+                <span class="toggle-track"></span>
+                <span class="toggle-label">Hand Status</span>
+              </label>
+            </div>
+            <div class="toggle-switch">
+              <input type="checkbox" id="use_base64" checked>
+              <label for="use_base64">
+                <span class="toggle-track"></span>
+                <span class="toggle-label">Base64 Encode</span>
+              </label>
+            </div>
+          </div>
+          <div class="slider-container">
+            <label for="fps">Frame Rate</label>
+            <div class="slider-with-value">
+              <input id="fps" type="range" min="1" max="30" value="10" step="1">
+              <span id="fps-value">10 FPS</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main content - video feed -->
+      <main class="main-content">
+        <div class="video-panel">
+          <div class="video-container">
+            <video id="input_video" style="display:none;"></video>
+            <canvas id="output_canvas"></canvas>
+            
+            <!-- Gesture indicator overlay -->
+            <div class="gesture-indicator" id="gesture-indicator">
+              <div class="gesture-icon" id="gesture-icon"></div>
+              <div class="gesture-text" id="hand-status">Initializing...</div>
+            </div>
+          </div>
+          <div class="video-panel-footer">
+            <div class="stream-stats">
+              <div class="stat-item">
+                <span class="stat-label">Stream:</span>
+                <span id="stream-status" class="stat-value status-disabled">Waiting...</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Resolution:</span>
+                <span id="resolution-display" class="stat-value">640×480</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <!-- Right sidebar with log console -->
+      <aside class="sidebar log-sidebar">
+        <div class="sidebar-section full-height">
+          <h2>Activity Log</h2>
+          <div class="log-actions">
+            <button id="clear-log" class="icon-btn" title="Clear Log">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"></path>
+              </svg>
+            </button>
+            <button id="export-log" class="icon-btn" title="Export Log">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path fill="currentColor" d="M14,3V7H17.59L7.76,16.83L9.17,18.24L19,8.41V12H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"></path>
+              </svg>
+            </button>
+          </div>
+          <div id="mqtt-log" class="log-console"></div>
+        </div>
+      </aside>
+    </div>
+    
+    <!-- Footer with status bar -->
+    <footer class="app-footer">
+      <div class="system-status">
+        <span class="status-item">Camera: <span id="camera-status">Initializing</span></span>
+        <span class="status-item">Model: <span id="model-status">Loading</span></span>
+      </div>
+      <div class="version-info">MQTT Esp32 Gesture Switch v1.0.0</div>
+    </footer>
+  </div>
+  
+  <!-- Custom JS -->
+  <script src="publisher.js"></script>
+</body>
+</html>
